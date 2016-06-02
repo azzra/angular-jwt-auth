@@ -12,6 +12,10 @@ bower install --save azzra/angular-jwt-auth
 ### Set the login_check URL
 
 ```js
+angular.module('app', ['...', 'angular-jwt-auth'])....
+```
+
+```js
 // app.js
 .config(function(credentialsServiceProvider) {
   credentialsServiceProvider.urlLoginCheck = '/login_check';
