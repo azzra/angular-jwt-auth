@@ -3,6 +3,12 @@ Mix [auth0/angular-jwt](https://github.com/auth0/angular-jwt) & [witoldsz/angula
 
 ## Documentation
 
+### Installation
+
+```sh
+bower install --save azzra/angular-jwt-auth
+```
+
 ### Set the login_check URL
 
 ```js
