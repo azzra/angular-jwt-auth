@@ -1,0 +1,25 @@
+{
+  "name": "angular-jwt-auth",
+  "version": "0.0.3",
+  "description": "Mix auth0/angular-jwt & witoldsz/angular-http-auth to get automatic auth when response code is 401",
+  "main": "index.js",
+  "scripts": {
+    "install": "bower install",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/azzra/angular-jwt-auth.git"
+  },
+  "keywords": [
+    "angularjs",
+    "jwt",
+    "auth"
+  ],
+  "author": "azzra",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/azzra/angular-jwt-auth/issues"
+  },
+  "homepage": "https://github.com/azzra/angular-jwt-auth#readme"
+}
