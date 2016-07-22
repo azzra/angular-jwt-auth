@@ -59,7 +59,7 @@ angular.module('angular-jwt-auth.credentials', [])
         if (localStorage.getItem("auth.username") === null) {
             return null;
         }
-        
+
         return {
             username: localStorageService.get('auth.username'),
             password: localStorageService.get('auth.password')
