@@ -3,13 +3,13 @@
 angular.module('angular-jwt-auth', ['angular-jwt', 'angular-jwt-auth.credentials', 'angular-ws-service', 'LocalStorageModule'])
 .config(["$httpProvider", "jwtInterceptorProvider", "credentialsServiceProvider", function($httpProvider, jwtInterceptorProvider, credentialsServiceProvider) {
 
-    jwtInterceptorProvider.tokenGetter = ['$injector', 'config', 'jwtHelper', '$http', 'WsService', function($injector, config, jwtHelper, $http, WsService) {
+    jwtInterceptorProvider.tokenGetter = function(config, jwtHelper, $http, WsService) {
 
         if ('.html' === config.url.substr(config.url.length - 5)) {
             return null;
         }
 
-        var existingToken = $injector.invoke(credentialsServiceProvider.existingTokenRetriever);
+        var existingToken = credentialsServiceProvider.existingTokenRetriever();
 
         // We got a expired token
         if (existingToken.token !== null && jwtHelper.isTokenExpired(existingToken.token)) {
@@ -24,12 +24,12 @@ angular.module('angular-jwt-auth', ['angular-jwt', 'angular-jwt-auth.credentials
                 ignoreAuthModule: true,
                 method: 'POST',
                 data: {
-                    refresh_token: existingToken.refreshToken
+                    'refresh_token': existingToken.refreshToken
                 }
             }).then(function(response) {
 
                 var data = response.data;
-                $injector.invoke(credentialsServiceProvider.tokenSaver, data);
+                credentialsServiceProvider.tokenSaver(data);
                 return data.token;
 
             }, function() {
@@ -43,23 +43,23 @@ angular.module('angular-jwt-auth', ['angular-jwt', 'angular-jwt-auth.credentials
             return existingToken.token;
         }
 
-    }];
+    };
 
     $httpProvider.interceptors.push('jwtInterceptor');
 
 }])
 
-.run(["$injector", "$rootScope", "authService", "credentialsService", function($injector, $rootScope, authService, credentialsService) {
+.run(["$rootScope", "authService", "credentialsService", function($rootScope, authService, credentialsService) {
 
     $rootScope.$on('event:auth-loginRequired', function() {
 
-        var credentials = $injector.invoke(credentialsService.credentialsRetriever);
+        var credentials = credentialsService.credentialsRetriever();
 
         if (credentials === null) {
             return;
         }
 
-        $injector.invoke(credentialsService.tokenRetriever, {_username: credentials.username, _password: credentials.password}).then(function(response) {
+        credentialsService.tokenRetriever({_username: credentials.username, _password: credentials.password}).then(function(response) {
 
             var data = response.data;
 
@@ -77,14 +77,14 @@ angular.module('angular-jwt-auth', ['angular-jwt', 'angular-jwt-auth.credentials
 
 }])
 
-.run(["$injector", "$rootScope", "credentialsService", function($injector, $rootScope, credentialsService) {
+.run(["$rootScope", "credentialsService", function($rootScope, credentialsService) {
 
     $rootScope.$on('event:auth-loginConfirmed', function(event, token) {
-        $injector.invoke(credentialsService.tokenSaver, token);
+        credentialsService.tokenSaver(token);
     });
 
     $rootScope.$on('event:auth-loginCancelled', function() {
-        $injector.invoke(credentialsService.tokenRemover);
+        credentialsService.tokenRemover();
     });
 
 }]);
@@ -145,9 +145,9 @@ angular.module('angular-jwt-auth.credentials', [])
 
 .config(["credentialsServiceProvider", function(credentialsServiceProvider) {
 
-    credentialsServiceProvider.credentialsRetriever = ['localStorageService', function(localStorageService) {
+    credentialsServiceProvider.credentialsRetriever = function(localStorageService) {
 
-        if (localStorage.getItem("auth.username") === null || localStorage.getItem("auth.password") === null) {
+        if (localStorage.getItem('auth.username') === null || localStorage.getItem('auth.password') === null) {
             return null;
         }
 
@@ -155,28 +155,28 @@ angular.module('angular-jwt-auth.credentials', [])
             username: localStorageService.get('auth.username'),
             password: localStorageService.get('auth.password')
         };
-    }];
+    };
 
-    credentialsServiceProvider.tokenSaver = ['localStorageService', function(localStorageService) {
+    credentialsServiceProvider.tokenSaver = function(localStorageService) {
         localStorageService.set('auth.jwt_token', this.token);
         localStorageService.set('auth.jwt_refresh_token', this.refresh_token);
-    }];
+    };
 
-    credentialsServiceProvider.existingTokenRetriever = ['localStorageService', function(localStorageService) {
+    credentialsServiceProvider.existingTokenRetriever = function(localStorageService) {
         return {
             token: localStorageService.get('auth.jwt_token'),
             refreshToken: localStorageService.get('auth.jwt_refresh_token')
         };
-    }];
+    };
 
-    credentialsServiceProvider.tokenRemover = ['localStorageService', function(localStorageService) {
-        localStorageService.remove('auth.jwt_token', 'auth.refresh_token');
-    }];
+    credentialsServiceProvider.tokenRemover = function(localStorageService) {
+        localStorageService.remove('auth.jwt_token', 'auth.jwt_refresh_token');
+    };
 
-    credentialsServiceProvider.tokenRetriever = ['$http', 'WsService', function($http, WsService) {
+    credentialsServiceProvider.tokenRetriever = function($http, WsService) {
         // We don't send Authorization headers
         return $http.post(credentialsServiceProvider.urlLoginCheck, this, {ignoreAuthModule: true, skipAuthorization: true, headers: {'Content-Type': 'application/x-www-form-urlencoded'}, transformRequest: WsService.objectToURLEncoded});
-    }];
+    };
 
 }]);
 

@@ -1,13 +1,13 @@
 angular.module('angular-jwt-auth', ['angular-jwt', 'angular-jwt-auth.credentials', 'angular-ws-service', 'LocalStorageModule'])
 .config(function($httpProvider, jwtInterceptorProvider, credentialsServiceProvider) {
 
-    jwtInterceptorProvider.tokenGetter = ['$injector', 'config', 'jwtHelper', '$http', 'WsService', function($injector, config, jwtHelper, $http, WsService) {
+    jwtInterceptorProvider.tokenGetter = function(config, jwtHelper, $http, WsService) {
 
         if ('.html' === config.url.substr(config.url.length - 5)) {
             return null;
         }
 
-        var existingToken = $injector.invoke(credentialsServiceProvider.existingTokenRetriever);
+        var existingToken = credentialsServiceProvider.existingTokenRetriever();
 
         // We got a expired token
         if (existingToken.token !== null && jwtHelper.isTokenExpired(existingToken.token)) {
@@ -22,12 +22,12 @@ angular.module('angular-jwt-auth', ['angular-jwt', 'angular-jwt-auth.credentials
                 ignoreAuthModule: true,
                 method: 'POST',
                 data: {
-                    refresh_token: existingToken.refreshToken
+                    'refresh_token': existingToken.refreshToken
                 }
             }).then(function(response) {
 
                 var data = response.data;
-                $injector.invoke(credentialsServiceProvider.tokenSaver, data);
+                credentialsServiceProvider.tokenSaver(data);
                 return data.token;
 
             }, function() {
@@ -41,23 +41,23 @@ angular.module('angular-jwt-auth', ['angular-jwt', 'angular-jwt-auth.credentials
             return existingToken.token;
         }
 
-    }];
+    };
 
     $httpProvider.interceptors.push('jwtInterceptor');
 
 })
 
-.run(function($injector, $rootScope, authService, credentialsService) {
+.run(function($rootScope, authService, credentialsService) {
 
     $rootScope.$on('event:auth-loginRequired', function() {
 
-        var credentials = $injector.invoke(credentialsService.credentialsRetriever);
+        var credentials = credentialsService.credentialsRetriever();
 
         if (credentials === null) {
             return;
         }
 
-        $injector.invoke(credentialsService.tokenRetriever, {_username: credentials.username, _password: credentials.password}).then(function(response) {
+        credentialsService.tokenRetriever({_username: credentials.username, _password: credentials.password}).then(function(response) {
 
             var data = response.data;
 
@@ -75,14 +75,14 @@ angular.module('angular-jwt-auth', ['angular-jwt', 'angular-jwt-auth.credentials
 
 })
 
-.run(function($injector, $rootScope, credentialsService) {
+.run(function($rootScope, credentialsService) {
 
     $rootScope.$on('event:auth-loginConfirmed', function(event, token) {
-        $injector.invoke(credentialsService.tokenSaver, token);
+        credentialsService.tokenSaver(token);
     });
 
     $rootScope.$on('event:auth-loginCancelled', function() {
-        $injector.invoke(credentialsService.tokenRemover);
+        credentialsService.tokenRemover();
     });
 
 });
