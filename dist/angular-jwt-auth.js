@@ -10,6 +10,7 @@ angular.module('angular-jwt-auth', ['angular-jwt', 'angular-jwt-auth.tools', 'an
             if (-1 !== angularJwtAuthToolsProvider.ignoredUrlExtensions.indexOf(splitUrl.pop())) {
                 return null;
             }
+
         }
 
         var existingToken = $injector.invoke(angularJwtAuthToolsProvider.existingTokenRetriever);
