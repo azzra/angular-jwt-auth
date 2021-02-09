@@ -1,3 +1,3 @@
-require('./dist/angular-ws-service.js');
-module.exports = 'angular-ws-service';
+require('./dist/angular-jwt-auth-module');
+module.exports = 'angular-jwt-auth-module';
 
